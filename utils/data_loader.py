@@ -20,32 +20,26 @@ class DataLoader:
     def load_raw_data(self) -> pd.DataFrame:
         """
         Load raw data from file.
-        Override this method with your specific data loading code.
         """
-        # TODO: Replace with your actual data loading code
-        # Example:
-        # if self.data_path.suffix == '.csv':
-        #     return pd.read_csv(self.data_path)
-        # elif self.data_path.suffix == '.mat':
-        #     return self._load_matlab_data()
+        return pd.read_feather(str(self.data_path))
         
         # Placeholder for testing
-        return pd.DataFrame({
-            'choice': np.random.binomial(1, 0.5, 1000),
-            'reward': np.random.binomial(1, 0.7, 1000),
-            'rt': np.random.normal(0.5, 0.1, 1000)
-        })
+        # return pd.DataFrame({
+        #     'choice': np.random.binomial(1, 0.5, 1000),
+        #     'reward': np.random.binomial(1, 0.7, 1000),
+        #     'rt': np.random.normal(0.5, 0.1, 1000)
+        # })
     
     def preprocess_data(self, 
-                       subject: Optional[str] = None,
-                       session: Optional[str] = None,
+                       mouse_id: Optional[str] = None,
+                       date: Optional[str] = None,
                        **kwargs) -> pd.DataFrame:
         """
         Preprocess the raw data.
         
         Args:
-            subject: Optional subject ID to filter
-            session: Optional session ID to filter
+            mouse_id: Optional mouse_id ID to filter
+            date: Optional session ID to filter
             **kwargs: Additional preprocessing parameters
         
         Returns:
@@ -56,22 +50,18 @@ class DataLoader:
         
         data = self.raw_data.copy()
         
-        # Filter by subject if specified
-        if subject is not None:
-            data = data[data['subject'] == subject]
-        
+        # Filter by mouse_id if specified
+        if mouse_id is not None:
+            data = data[data['Mouse id'] == mouse_id]
+
         # Filter by session if specified
-        if session is not None:
-            data = data[data['session'] == session]
+        if date is not None:
+            data = data[data['Days'] == date]
         
-        # Add your preprocessing steps here
-        # Example:
-        # - Remove trials with missing data
-        # - Calculate additional variables
-        # - Normalize variables
-        # - Add trial numbers
-        # - Add block information
-        # - etc.
+        # Add preprocessing steps here
+        # -- Create a new dataset only with the variables of interest
+        #--have the choice variable and reward variable
+        #-- use ludovica's parameters for reward and reward after switch and incorrect switch etc to get these columns so that it can be fit properly
         
         # Ensure required columns exist
         required_columns = ['choice', 'reward']
@@ -95,7 +85,7 @@ class DataLoader:
         info = {
             'n_trials': len(self.processed_data),
             'columns': list(self.processed_data.columns),
-            'subjects': list(self.processed_data['subject'].unique()) if 'subject' in self.processed_data.columns else None,
+            'mouse_ids': list(self.processed_data['mouse_id'].unique()) if 'mouse_id' in self.processed_data.columns else None,
             'sessions': list(self.processed_data['session'].unique()) if 'session' in self.processed_data.columns else None
         }
         
@@ -118,7 +108,7 @@ class DataLoader:
         print(f"Processed data saved to: {output_path}")
 
 def load_data(data_path: str, 
-             subject: Optional[str] = None,
+             mouse_id: Optional[str] = None,
              session: Optional[str] = None,
              **kwargs) -> pd.DataFrame:
     """
@@ -126,7 +116,7 @@ def load_data(data_path: str,
     
     Args:
         data_path: Path to the data file
-        subject: Optional subject ID to filter
+        mouse_id: Optional mouse_id ID to filter
         session: Optional session ID to filter
         **kwargs: Additional preprocessing parameters
     
@@ -134,4 +124,64 @@ def load_data(data_path: str,
         Preprocessed DataFrame
     """
     loader = DataLoader(data_path)
-    return loader.preprocess_data(subject=subject, session=session, **kwargs) 
+    return loader.preprocess_data(mouse_id=mouse_id, session=session, **kwargs)
+
+if __name__ == "__main__":
+    # Test the DataLoader functionality
+    import os
+    
+    # Test 1: Basic initialization and data loading
+    print("\nTest 1: Basic initialization and data loading")
+    try:
+        # Replace this path with your actual data path
+        test_data_path = "C:\\Users\\shaur\\Desktop\\FannyLab\\data\\raw\\AllData_fused_bySession_WorkingVer.feather"
+        loader = DataLoader(test_data_path)
+        raw_data = loader.load_raw_data()
+        print(f"Successfully loaded raw data with shape: {raw_data.shape}")
+    except Exception as e:
+        print(f"Error in Test 1: {str(e)}")
+
+    # Test 2: Data preprocessing
+    print("\nTest 2: Data preprocessing")
+    try:
+        # Test preprocessing with optional filters
+        processed_data = loader.preprocess_data(
+            mouse_id="VF016",
+            session="2024-07-16"   # Replace with actual session ID
+        )
+        print(f"Successfully preprocessed data with shape: {processed_data.shape}")
+        print("Required columns present:", all(col in processed_data.columns for col in ['choice', 'reward']))
+    except Exception as e:
+        print(f"Error in Test 2: {str(e)}")
+
+    # # Test 3: Get data information
+    # print("\nTest 3: Get data information")
+    # try:
+    #     info = loader.get_data_info()
+    #     print("Data information:")
+    #     for key, value in info.items():
+    #         print(f"{key}: {value}")
+    # except Exception as e:
+    #     print(f"Error in Test 3: {str(e)}")
+
+    # # Test 4: Save processed data
+    # print("\nTest 4: Save processed data")
+    # try:
+    #     # Replace with your desired output path
+    #     output_path = "path/to/output/processed_data.csv"
+    #     loader.save_processed_data(output_path)
+    #     print(f"Data saved successfully to: {output_path}")
+    # except Exception as e:
+    #     print(f"Error in Test 4: {str(e)}")
+
+    # # Test 5: Convenience function
+    # print("\nTest 5: Convenience function")
+    # try:
+    #     data = load_data(
+    #         test_data_path,
+    #         mouse_id="test_mouse_id",
+    #         session="test_session"
+    #     )
+    #     print(f"Successfully loaded and preprocessed data using convenience function. Shape: {data.shape}")
+    # except Exception as e:
+    #     print(f"Error in Test 5: {str(e)}") 

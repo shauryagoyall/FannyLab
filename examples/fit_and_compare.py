@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 from models.example_models import SimpleRLModel, DriftDiffusionModel
 from utils.model_comparison import compare_models, plot_model_comparison, calculate_bic_weights
+import os
 
 def main():
     # Load your data
     # data = pd.read_csv('path_to_your_data.csv')
-    
+
     # For demonstration, create some synthetic data
     np.random.seed(42)
     n_trials = 1000
@@ -37,7 +38,9 @@ def main():
     print(results[['Model', 'BIC', 'Delta_BIC', 'BIC_Weight']])
     
     # Plot results
-    plot_model_comparison(results, 'results/model_comparison.png')
+    plot_dir = 'C:\\Users\\shaur\\Desktop\\FannyLab\\results'
+    os.makedirs(plot_dir+"\\examples\\", exist_ok=True)
+    plot_model_comparison(results, plot_dir +'\\examples\\model_comparison.png')
 
 if __name__ == "__main__":
     main() 

@@ -20,10 +20,10 @@ def parse_args():
     # Optional arguments
     parser.add_argument('--output_dir', type=str, default='results',
                       help='Directory to save results (default: results)')
-    parser.add_argument('--subject', type=str, default='all',
-                      help='Subject ID to analyze (default: all)')
-    parser.add_argument('--session', type=str, default=None,
-                      help='Session ID to analyze (default: None)')
+    parser.add_argument('--mouse_id', type=str, default=None,
+                      help='Mouse ID to analyze (default: None)')
+    parser.add_argument('--date', type=str, default=None,
+                      help='Date to analyze (default: None)')
     
     # Model parameters (optional)
     parser.add_argument('--params', type=str,
@@ -54,8 +54,8 @@ def main():
     print(f"\nLoading data from {args.data_path}...")
     data_loader = DataLoader(args.data_path)
     data = data_loader.preprocess_data(
-        subject=args.subject if args.subject != 'all' else None,
-        session=args.session
+        mouse_id=args.mouse_id if args.mouse_id != 'all' else None,
+        date=args.date
     )
     
     # Print data information
